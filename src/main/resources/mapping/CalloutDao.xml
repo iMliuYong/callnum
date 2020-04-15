@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mrliu.mapper.CalloutDao">
+	<insert id="insertCall">
+		INSERT INTO callnum(
+			qhxxxlh,
+			sbkzjsjip,
+			pdh,
+			ywlb,
+			sfzmhm,
+			dlrsfzmhm,
+			qhrxm,
+			rylb,
+			state
+		) VALUES (
+			#{qhxxxlh},
+			#{sbkzjsjip},
+			#{pdh},
+			#{ywlb},
+			#{sfzmhm},
+			#{dlrsfzmhm},
+			#{qhrxm},
+			#{rylb},
+			#{state}
+		)
+	</insert>
+    <select id="getNowNum" resultType="String">
+		SELECT
+			substring(qhxxxlh,7)
+		FROM callnum a
+		WHERE date(qhsj)=curdate() and state='0' order by qhsj desc limit 1
+	</select>
+	<select id="getWaitNum" resultType="Integer">
+		SELECT
+			count(*)
+		FROM callnum a
+		WHERE date(a.qhsj)=curdate() and a.state ='0'
+	</select>
+	<select id="getSfzmhmNum" resultType="Integer">
+	SELECT count(*)
+	 FROM callnum a
+	WHERE date(qhsj)=curdate() and  a.sfzmhm=#{sfzmhm}
+	</select>
+	<select id="getSkcs" resultType="Integer">
+		select count(*)
+		FROM callnum a
+		WHERE date(a.qhsj)=curdate()
+	</select>
+	<select id="getoldNum" resultType="String">
+		SELECT
+			substring(qhxxxlh,7)
+		FROM callnum a
+		WHERE date(qhsj)=curdate() and (state='1' or state='2') order by qhsj desc limit 1
+	</select>
+	<select id="getQueueNum" resultType="Callnum">
+		SELECT a.qhxxxlh,a.sbkzjsjip,a.pdh,a.ywlb,a.sfzmhm,a.dlrsfzmhm,a.qhrxm,date_format(a.qhsj,'%Y-%m-%d %T') as qhsj,a.rylb,a.calltime,a.state
+		FROM callnum a
+		WHERE date(a.qhsj)=curdate() and a.state ='0' order by qhsj asc limit 1
+	</select>
+	<update id="JhQueue">
+		UPDATE callnum SET callwin = #{ywckbh}, state = '1'
+		 WHERE qhxxxlh = #{qhxxxlh}
+	</update>
+	<update id="SkipQueue">
+		UPDATE callnum SET callwin = #{ywckbh}, state = '2'
+		 WHERE qhxxxlh = #{qhxxxlh}
+	</update>
+	<select id="getRecallNum" resultType="Callnum">
+		SELECT a.qhxxxlh,a.sbkzjsjip,a.pdh,a.ywlb,a.sfzmhm,a.dlrsfzmhm,a.qhrxm,date_format(a.qhsj,'%Y-%m-%d %T') as qhsj,a.rylb,a.calltime,a.state
+		FROM callnum a
+		WHERE callwin =#{callwin} and state='1' order by qhsj desc limit 1
+	</select>
+	<select id="getFaceOption" resultType="String">
+		SELECT
+			mrz
+		FROM sys_config a
+		WHERE id = '1'
+	</select>
+	<update id="upFaceOption">
+		UPDATE sys_config SET mrz = #{mrz}
+		 WHERE id = '1'
+	</update>
+</mapper>
